@@ -164,8 +164,10 @@ func TestDelayedRateLimiter(t *testing.T) {
 		slow := r.createLimiter(10, ratelimit.WithoutSlack)
 		fast := r.createLimiter(100, ratelimit.WithoutSlack)
 
+		// Run a slow startTaking
 		r.startTaking(slow, fast)
 
+		// Accumulate slack for 10 seconds,
 		r.afterFunc(20*time.Second, func() {
 			r.startTaking(fast)
 			r.startTaking(fast)
@@ -173,11 +175,8 @@ func TestDelayedRateLimiter(t *testing.T) {
 			r.startTaking(fast)
 		})
 
-		// Slow limiter allows 10 per second, so 100.
 		r.assertCountAt(10*time.Second, 100)
-		// Another 10 seconds, so we're at 200.
 		r.assertCountAt(20*time.Second, 200)
-		// Now the fast limiter goes at 100/sec, so another 1000.
 		r.assertCountAt(30*time.Second, 1200)
 	})
 }
